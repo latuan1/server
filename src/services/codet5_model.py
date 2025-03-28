@@ -1,13 +1,12 @@
-from abc import ABC
 from src.services.base_model import BaseModel
 import os
 import torch
 from peft import PeftConfig, PeftModel
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
-class Codet5Model(BaseModel, ABC):
+class Codet5Model(BaseModel):
     def __init__(self, model_name: str):
-        super().__init__()
+        super().__init__(model_name)
         if os.path.exists(os.path.join(model_name, "adapter_config.json")):
             # Đọc thông tin cấu hình adapter
             config = PeftConfig.from_pretrained(model_name)

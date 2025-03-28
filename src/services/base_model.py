@@ -5,9 +5,5 @@ class BaseModel(ABC):
         self.model_name = model_name
 
     @abstractmethod
-    def load_model(self):
-        pass
-
-    @abstractmethod
     def predict(self, prompt: str):
         pass
