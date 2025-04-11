@@ -9,7 +9,12 @@ class GenerationRequest(BaseModel):
 
 app = FastAPI()
 
-model = load_model_by_type(model_name)
+model = None
+
+@app.on_event("startup")
+async def load_model():
+    global model
+    model = load_model_by_type(model_name)
 
 @app.post("/generate")
 async def generate(request: GenerationRequest):

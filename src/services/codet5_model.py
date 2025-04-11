@@ -28,6 +28,7 @@ class Codet5Model(BaseModel):
                 is_trainable=False,
             )
             tokenizer = AutoTokenizer.from_pretrained(base_model_name)
+            print("checkpoint loaded")
         else:
             model_path = os.path.join("Salesforce", model_name)
             # Load mô hình thông thường từ HuggingFace
@@ -36,10 +37,11 @@ class Codet5Model(BaseModel):
                 device_map="cuda" if torch.cuda.is_available() else "cpu"
             )
             tokenizer = AutoTokenizer.from_pretrained(model_path)
+            print("huggingface loaded")
         return model, tokenizer
 
     def generate_from_prompt(self, prompt: str):
-        inputs = self.tokenizer(prompt + "<SEP>", return_tensors="pt", max_length=1024, truncation=True)
+        inputs = self.tokenizer(prompt + "<SEP>", return_tensors="pt", max_length=512, truncation=True)
         inputs = {key: value.to(self.model.device) for key, value in inputs.items()}
 
         self.model.eval()  # bật chế độ đánh giá
@@ -47,7 +49,7 @@ class Codet5Model(BaseModel):
         with torch.no_grad():
             outputs = self.model.generate(
                 inputs=inputs["input_ids"],
-                max_length=1024,
+                max_length=512,
                 pad_token_id=self.tokenizer.pad_token_id if hasattr(self.tokenizer,
                                                                     'pad_token_id') else self.tokenizer.eos_token_id
             )
