@@ -7,9 +7,12 @@ from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 class Codet5Model(BaseModel):
     def __init__(self, model_name: str):
         super().__init__(model_name)
-        if os.path.exists(os.path.join(model_name, "adapter_config.json")):
+
+    def load_model(self, model_name):
+        model_path = os.path.join("models", model_name)
+        if os.path.exists(os.path.join(model_path, "adapter_config.json")):
             # Đọc thông tin cấu hình adapter
-            config = PeftConfig.from_pretrained(model_name)
+            config = PeftConfig.from_pretrained(model_path)
             base_model_name = config.base_model_name_or_path
 
             # Load mô hình cơ sở
@@ -19,22 +22,24 @@ class Codet5Model(BaseModel):
                 device_map="auto"
             )
             # Load adapter từ checkpoint với đủ thông tin
-            self.model = PeftModel.from_pretrained(
+            model = PeftModel.from_pretrained(
                 model,
-                model_name,
+                model_path,
                 is_trainable=False,
             )
-            self.tokenizer = AutoTokenizer.from_pretrained(base_model_name)
+            tokenizer = AutoTokenizer.from_pretrained(base_model_name)
         else:
+            model_path = os.path.join("Salesforce", model_name)
             # Load mô hình thông thường từ HuggingFace
-            self.model = AutoModelForSeq2SeqLM.from_pretrained(
-                "Salesforce/codet5-base",
+            model = AutoModelForSeq2SeqLM.from_pretrained(
+                model_path,
                 device_map="cuda" if torch.cuda.is_available() else "cpu"
             )
-            self.tokenizer = AutoTokenizer.from_pretrained("Salesforce/codet5-base")
+            tokenizer = AutoTokenizer.from_pretrained(model_path)
+        return model, tokenizer
 
-    def predict(self, prompt: str):
-        inputs = self.tokenizer(prompt, return_tensors="pt", max_length=1024, truncation=True)
+    def generate_from_prompt(self, prompt: str):
+        inputs = self.tokenizer(prompt + "<SEP>", return_tensors="pt", max_length=1024, truncation=True)
         inputs = {key: value.to(self.model.device) for key, value in inputs.items()}
 
         self.model.eval()  # bật chế độ đánh giá

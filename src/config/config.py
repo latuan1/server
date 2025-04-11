@@ -1,3 +1,5 @@
 class MODEL_NAMES:
-    CODET5 = "models/codet5"
-    STARCODER2_3B = "models/starcoder2-3b"
+    CODET5 = "codet5-base"
+    STARCODER2_3B = "starcoder2-3b"
+
+model_name = MODEL_NAMES.CODET5
