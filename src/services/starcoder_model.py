@@ -6,9 +6,26 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 class StarCoderModel(BaseModel):
     def __init__(self, model_name: str):
+        """
+        Initializes the StarCoderModel with the specified model name.
+        
+        Args:
+            model_name: The identifier for the model to be loaded.
+        """
         super().__init__(model_name)
 
     def load_model(self, model_name):
+        """
+        Loads a StarCoder model and tokenizer, supporting both base and PEFT (AdaLoRA) fine-tuned models.
+        
+        If a local PEFT adapter configuration is detected, loads the base model and applies the PEFT adapter, printing adapter configuration and module details for inspection. Otherwise, loads the base model and tokenizer from the HuggingFace "bigcode" directory. Ensures the tokenizer has a padding token set.
+        
+        Args:
+            model_name: Name of the model to load, either as a local directory or HuggingFace identifier.
+        
+        Returns:
+            A tuple containing the loaded model and tokenizer.
+        """
         model_path = os.path.join("models", model_name)
         is_local_model = os.path.exists(model_path)
         is_peft_model = is_local_model and os.path.exists(os.path.join(model_path, "adapter_config.json"))
@@ -89,6 +106,17 @@ class StarCoderModel(BaseModel):
         return model, tokenizer
 
     def generate_from_prompt(self, prompt: str):
+        """
+        Generates text from a prompt using the loaded StarCoder model.
+        
+        Tokenizes the input prompt with a "<SEP> " suffix, generates a continuation up to 512 tokens, and decodes the output to a string, omitting special tokens.
+        
+        Args:
+            prompt: The input text prompt to generate from.
+        
+        Returns:
+            The generated text as a string.
+        """
         inputs = self.tokenizer(prompt + "<SEP> ", return_tensors="pt", max_length=512, truncation=True)
         inputs = {key: value.to(self.model.device) for key, value in inputs.items()}
         with torch.no_grad():
