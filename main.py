@@ -47,7 +47,7 @@ async def load_model():
 
 @app.get("/generate")
 async def generate(request: TestDataRequestModel):
-    if not request.input:
+    if not request:
         raise HTTPException(status_code=400, detail="Input không được để trống")
     prompt = make_prompt(request)
     result = model.generate_from_prompt(prompt)
