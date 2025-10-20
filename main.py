@@ -32,8 +32,8 @@ def make_prompt(request: TestDataRequestModel) -> "str":
     constructors = " ".join([s.strip() for s in (r.c or []) if s.strip()])
     methods = " ".join([s.strip() for s in (r.m or []) if s.strip()])
     fm_name = executed_fm.split('(', 1)[0]
-    prompt = "Generate a test data input to maximize branch coverage for focal method " + fm_name + "".join(
-        ["/*FC*/", fc_name, "\n{", "/*FM*/ ", executed_fm, "/*F*/:", executed_f, "/*C*/",
+    prompt = "Generate a test data input to maximize branch coverage for focal method " + fm_name + ". " + "".join(
+        ["/*FC*/", fc_name, "\n{", "/*FM*/ ", executed_fm, "/*F*/", executed_f, "/*C*/",
          constructors,"/*STUB*/", "/*M*/", methods, "\n}"
          ])
     return prompt
