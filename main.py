@@ -1,3 +1,4 @@
+import re
 from copy import deepcopy
 from typing import Optional, List
 
@@ -24,10 +25,18 @@ class TestDataRequestModel(BaseModel):
         data['m'] = deepcopy(self.m) if self.m is not None else []
         return TestDataRequestModel(**data)
 
+def extract_class_declaration(focal_class):
+    match = re.search(r'\b(?:final\s+)?(?:class)\s+\w+\s*{', focal_class)
+
+    if match:
+        return match.group(0).strip(" {")
+    else:
+        return ""
+
 def make_prompt(request: TestDataRequestModel) -> "str":
     r = request.normalized()
     executed_fm = (r.fm or "").strip()
-    fc_name = (r.fc or "").strip()
+    fc_name = extract_class_declaration(r.fc)
     executed_f = " ".join([s.strip() for s in (r.f or []) if s.strip()])
     constructors = " ".join([s.strip() for s in (r.c or []) if s.strip()])
     methods = " ".join([s.strip() for s in (r.m or []) if s.strip()])
