@@ -71,12 +71,12 @@ async def predict(request: TestDataRequestModel, version_id: Optional[str] = Que
     return JSONResponse(content={"testData": result, "prompt": prompt})
 
 
-@app.get("/model_seving")
+@app.get("/model_serving")
 async def index():
     return JSONResponse(content={"success": True})
 
 
-@app.get("aka/default_version")
+@app.get("/aka/default_version")
 async def default_version():
     return JSONResponse(
         content={"model": {"name": model_name + version_id, "provider": "provider", "description": "description",
@@ -84,7 +84,7 @@ async def default_version():
                  "parameters": {"apiKey": "apikey", "maxTokens": str(max_token_length)}})
 
 
-@app.get("aka/all_versions")
+@app.get("/aka/all_versions")
 async def all_versions():
     return JSONResponse(
         content=[{"model": {"name": model_name + version_id, "provider": "provider", "description": "description",
