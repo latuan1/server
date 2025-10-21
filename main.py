@@ -3,12 +3,15 @@ from copy import deepcopy
 from typing import Optional, List
 
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field
-from src.config.config import model_name
+from starlette.responses import JSONResponse
+
+from src.config.config import model_name, version_id, max_token_length
 from src.utils.model_utils import load_model_by_type
 
 app = FastAPI()
+
 
 class TestDataRequestModel(BaseModel):
     fm: Optional[str] = Field(None, description="file/module name")
@@ -25,6 +28,7 @@ class TestDataRequestModel(BaseModel):
         data['m'] = deepcopy(self.m) if self.m is not None else []
         return TestDataRequestModel(**data)
 
+
 def extract_class_declaration(focal_class):
     match = re.search(r'\b(?:final\s+)?(?:class)\s+\w+\s*{', focal_class)
 
@@ -32,6 +36,7 @@ def extract_class_declaration(focal_class):
         return match.group(0).strip(" {")
     else:
         return ""
+
 
 def make_prompt(request: TestDataRequestModel) -> "str":
     r = request.normalized()
@@ -43,24 +48,49 @@ def make_prompt(request: TestDataRequestModel) -> "str":
     fm_name = executed_fm.split('(', 1)[0]
     prompt = "Generate a test data input to maximize branch coverage for focal method " + fm_name + ". " + "".join(
         ["/*FC*/", fc_name, "\n{", "/*FM*/ ", executed_fm, "/*F*/", executed_f, "/*C*/",
-         constructors,"/*STUB*/", "/*M*/", methods, "\n}"
+         constructors, "/*STUB*/", "/*M*/", methods, "\n}"
          ])
     return prompt
 
+
 model = None
+
 
 @app.on_event("startup")
 async def load_model():
     global model
     model = load_model_by_type(model_name)
 
-@app.get("/generate")
-async def generate(request: TestDataRequestModel):
+
+@app.post("/aka/generate")
+async def predict(request: TestDataRequestModel, version_id: Optional[str] = Query(None)):
     if not request:
         raise HTTPException(status_code=400, detail="Input không được để trống")
     prompt = make_prompt(request)
     result = model.generate_from_prompt(prompt)
-    return {"keyValue": result, "prompt": prompt}
+    return JSONResponse(content={"testData": result, "prompt": prompt})
+
+
+@app.get("/model_seving")
+async def index():
+    return JSONResponse(content={"success": True})
+
+
+@app.get("aka/default_version")
+async def default_version():
+    return JSONResponse(
+        content={"model": {"name": model_name + version_id, "provider": "provider", "description": "description",
+                           "contextLength": str(max_token_length)},
+                 "parameters": {"apiKey": "apikey", "maxTokens": str(max_token_length)}})
+
+
+@app.get("aka/all_versions")
+async def all_versions():
+    return JSONResponse(
+        content=[{"model": {"name": model_name + version_id, "provider": "provider", "description": "description",
+                            "contextLength": str(max_token_length)},
+                  "parameters": {"apiKey": "apikey", "maxTokens": str(max_token_length)}}])
+
 
 if __name__ == "__main__":
     # Chạy server trên host 0.0.0.0 và port 8000

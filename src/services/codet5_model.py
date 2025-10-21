@@ -1,3 +1,4 @@
+from src.config.config import max_token_length
 from src.services.base_model import BaseModel
 import os
 import torch
@@ -49,9 +50,12 @@ class Codet5Model(BaseModel):
         with torch.no_grad():
             outputs = self.model.generate(
                 inputs=inputs["input_ids"],
-                max_length=512,
+                max_length=max_token_length,
                 pad_token_id=self.tokenizer.pad_token_id if hasattr(self.tokenizer,
-                                                                    'pad_token_id') else self.tokenizer.eos_token_id
+                                                                    'pad_token_id') else self.tokenizer.eos_token_id,
+                do_sample=True,
+                temperature=0.8,  # thấp để không quá loạn
+                top_p=0.9,  # nucleus sampling, bỏ bớt tail tokens
             )
         return self.tokenizer.decode(outputs[0], skip_special_tokens=True)
 
