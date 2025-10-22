@@ -1,3 +1,4 @@
+import json
 import re
 from copy import deepcopy
 from typing import Optional, List
@@ -68,7 +69,12 @@ async def predict(request: TestDataRequestModel, version_id: Optional[str] = Que
         raise HTTPException(status_code=400, detail="Input không được để trống")
     prompt = make_prompt(request)
     result = model.generate_from_prompt(prompt)
-    return {"code": 200, "message": "ok", "data": {"testData": result, "prompt": prompt}}
+    try:
+        parsed_result = json.loads(result)
+    except (json.JSONDecodeError, TypeError):
+        # Nếu không parse được, gói lại dạng text
+        parsed_result = {"output": result}
+    return {"code": 200, "message": "ok", "data": {"testData": parsed_result, "prompt": prompt}}
 
 
 @app.get("/model_serving")
