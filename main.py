@@ -68,28 +68,28 @@ async def predict(request: TestDataRequestModel, version_id: Optional[str] = Que
         raise HTTPException(status_code=400, detail="Input không được để trống")
     prompt = make_prompt(request)
     result = model.generate_from_prompt(prompt)
-    return JSONResponse(content={"testData": result, "prompt": prompt})
+    return {"code": 200, "message": "ok", "data": {"testData": result, "prompt": prompt}}
 
 
 @app.get("/model_serving")
 async def index():
-    return JSONResponse(content={"success": True})
+    return {"code": 200, "message": "ok", "data": {"success": True}}
 
 
 @app.get("/aka/default_version")
 async def default_version():
-    return JSONResponse(
-        content={"model": {"name": model_name + version_id, "provider": "provider", "description": "description",
-                           "contextLength": str(max_token_length)},
-                 "parameters": {"apiKey": "apikey", "maxTokens": str(max_token_length)}})
+    return {"code": 200, "message": "ok",
+            "data": {"model": {"name": model_name + version_id, "provider": "provider", "description": "description",
+                               "contextLength": str(max_token_length)},
+                     "parameters": {"apiKey": "apikey", "maxTokens": str(max_token_length)}}}
 
 
 @app.get("/aka/all_versions")
 async def all_versions():
-    return JSONResponse(
-        content=[{"model": {"name": model_name + version_id, "provider": "provider", "description": "description",
-                            "contextLength": str(max_token_length)},
-                  "parameters": {"apiKey": "apikey", "maxTokens": str(max_token_length)}}])
+    return {"code": 200, "message": "ok",
+            "data": [{"model": {"name": model_name + version_id, "provider": "provider", "description": "description",
+                                "contextLength": str(max_token_length)},
+                      "parameters": {"apiKey": "apikey", "maxTokens": str(max_token_length)}}]}
 
 
 if __name__ == "__main__":
