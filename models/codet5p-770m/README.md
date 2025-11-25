@@ -1,6 +1,10 @@
 ---
 base_model: Salesforce/codet5p-770m
 library_name: peft
+tags:
+- base_model:adapter:Salesforce/codet5p-770m
+- lora
+- transformers
 ---
 
 # Model Card for Model ID
@@ -199,4 +203,4 @@ Carbon emissions can be estimated using the [Machine Learning Impact calculator]
 [More Information Needed]
 ### Framework versions
 
-- PEFT 0.15.2
+- PEFT 0.18.0
